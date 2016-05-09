@@ -288,7 +288,11 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "post success");
                 messageArray.remove(message);
                 JSONObject object = null;
-                for (int i = 1; i < response.length(); i++) {
+                int start = 1;
+                lastMessageId = sharedPreferences.getInt(App.PREF_KEY_LAST_MSG_ID, 0);
+                if (lastMessageId == 0)
+                    start = 0;
+                for (int i = start; i < response.length(); i++) {
                     try {
                         object = (JSONObject) response.get(i);
                         messageArray.add(new Message(object));

@@ -35,13 +35,17 @@ class Message:
 # }
 
 CLIENTS = {
-    0: Client(0, 'rafa'),
-    1: Client(1, 'yasmin'),
-    2: Client(2, 'john'),
-    3: Client(3, 'sara'),
+    0: Client(0, 'John'),
+
+    # 0: Client(0, 'rafa'),
+    # 1: Client(1, 'yasmin'),
+    # 2: Client(2, 'john'),
+    # 3: Client(3, 'sara'),
 }
 
 MESSAGES = {
-    0: Message(0, 'Hi', 0, 'rafa'),
-    1: Message(1, 'Hi there.', 0, 'yasmin'),
+    0: Message(0, 'Hi, I\'m John', 0, CLIENTS[0].client_name),
+    1: Message(1, 'Have fun chatting!', 0, CLIENTS[0].client_name),
+    # 0: Message(0, 'Hi', 0, 'rafa'),
+    # 1: Message(1, 'Hi there.', 0, 'yasmin'),
 }
