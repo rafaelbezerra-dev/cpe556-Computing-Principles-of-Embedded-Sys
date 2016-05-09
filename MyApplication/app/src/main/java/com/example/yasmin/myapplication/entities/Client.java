@@ -10,9 +10,21 @@ public class Client {
     int clientId;
     String clientName;
 
-    public Client(String name, int id) {
+    public Client(String clientName) {
+        this.clientName = clientName;
+    }
+
+    public Client(int id, String name) {
         clientId = id;
         clientName = name;
+    }
+
+    public JSONObject serialize() throws JSONException {
+        JSONObject json = new JSONObject();
+//        json.put("clientId", clientId);
+        json.put("clientName", clientName);
+
+        return json;
     }
 
     public Client(JSONObject object) throws JSONException {

@@ -27,16 +27,22 @@ public class Message {
         isSent = true;
     }
 
-    public int getMessageId() {
-        return messageId;
+    public JSONObject serialize() throws JSONException {
+        JSONObject json = new JSONObject();
+//        json.put("messageId", messageId);
+        json.put("clientId", clientId);
+        json.put("messageContent", messageContent);
+//        json.put("clientName", clientName);
+
+        return json;
     }
 
     public int getClientId() {
         return clientId;
     }
 
-    public String getMessageContent() {
-        return messageContent;
+    public void setClientId(int clientId) {
+        this.clientId = clientId;
     }
 
     public String getClientName() {
@@ -53,5 +59,21 @@ public class Message {
 
     public void setSent(boolean sent) {
         isSent = sent;
+    }
+
+    public String getMessageContent() {
+        return messageContent;
+    }
+
+    public void setMessageContent(String messageContent) {
+        this.messageContent = messageContent;
+    }
+
+    public int getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(int messageId) {
+        this.messageId = messageId;
     }
 }
