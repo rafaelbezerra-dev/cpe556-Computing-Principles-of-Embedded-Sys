@@ -25,18 +25,30 @@ class MessageListAPI(Resource):
         api.add_resource(MessageListAPI, '/messages')
 
     def get(self):
-        l = [o.serialize() for o in MESSAGES.values()]
-        return l
-
+        last_message = 0
+        if "last_message" in request.args:
+            last_message = int(request.args["last_message"])
+        message_list = MESSAGES.values()[last_message:]
+        serialized_list = [o.serialize() for o in message_list]
+        return serialized_list
+        # l = [o.serialize() for o in MESSAGES.values()]
+        # return l
 
     def post(self):
+        last_message = 0
+        if "last_message" in request.args:
+            last_message = int(request.args["last_message"])
+
         client_id = int(request.json['clientId'])
         abort_if_client_doesnt_exist(client_id)
 
         message_content = request.json['messageContent']
         client_name = CLIENTS[client_id].client_name
 
-
-        message_id = len(MESSAGES) + 1
+        message_id = len(MESSAGES)
         MESSAGES[message_id] = Message(message_id, message_content, client_id, client_name)
-        return MESSAGES[message_id].serialize(), 201
+
+        message_list = MESSAGES.values()[last_message:]
+        serialized_list = [o.serialize() for o in message_list]
+        return serialized_list
+        # return MESSAGES[message_id].serialize(), 201

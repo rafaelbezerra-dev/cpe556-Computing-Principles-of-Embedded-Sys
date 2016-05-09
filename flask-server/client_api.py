@@ -12,10 +12,15 @@ class ClientAPI(Resource):
     @staticmethod
     def register_routes(api):
         # api.add_resource(self, '/clients')
-        api.add_resource(ClientAPI, '/client/<client_id>')
+        api.add_resource(ClientAPI, '/client/<int:client_id>')
 
     def get(self, client_id):
         abort_if_client_doesnt_exist(client_id)
+        return CLIENTS[client_id].serialize()
+
+    def put(self, client_id):
+        abort_if_client_doesnt_exist(client_id)
+        CLIENTS[client_id].client_name = request.json['clientName']
         return CLIENTS[client_id].serialize()
 
 
@@ -32,6 +37,6 @@ class ClientListAPI(Resource):
 
     def post(self):
         req = request
-        client_id = len(CLIENTS) + 1
+        client_id = len(CLIENTS)
         CLIENTS[client_id] = Client(client_id, request.json['clientName'])
         return CLIENTS[client_id].serialize(), 201
