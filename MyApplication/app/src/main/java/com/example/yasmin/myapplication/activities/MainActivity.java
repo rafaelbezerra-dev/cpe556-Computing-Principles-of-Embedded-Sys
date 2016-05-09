@@ -178,24 +178,37 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void getMessageList(){
+    private void getMessageList() {
         getMessageList(false);
     }
 
     private void getMessageList(final boolean allMessages) {
-        HttpServiceWrapper.getMessageList(this, new JsonHttpResponseHandler() {
+        lastMessageId = 0;
+        if (!allMessages)
+            lastMessageId = sharedPreferences.getInt(App.PREF_KEY_LAST_MSG_ID, 0);
+        HttpServiceWrapper.getMessageList(this, lastMessageId, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 JSONObject object = null;
-                if (allMessages)
+                int start = 1;
+                if (allMessages) {
                     messageArray.clear();
-                for (int i = 0; i < response.length(); i++) {
+                    start = 0;
+                }
+                for (int i = start; i < response.length(); i++) {
                     try {
                         object = (JSONObject) response.get(i);
                         messageArray.add(new Message(object));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                }
+                messageRowAdapter.notifyDataSetChanged();
+                if (messageArray.size() > 0) {
+                    lastMessageId = messageArray.get(messageArray.size() - 1).getMessageId();
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putInt(App.PREF_KEY_LAST_MSG_ID, lastMessageId);
+                    editor.apply();
                 }
                 Log.d(TAG, "I got " + messageArray.size() + " message.");
             }
@@ -208,9 +221,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendMessage(final Message message) {
-
+        message.setClientName(userName);
         message.setSent(false);
         messageArray.add(message);
+        messageRowAdapter.notifyDataSetChanged();
 
         HttpServiceWrapper.sendMessage(this, message, new JsonHttpResponseHandler() {
             @Override
@@ -226,6 +240,20 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
+                if (messageArray.size() > 0) {
+                    lastMessageId = messageArray.get(messageArray.size() - 1).getMessageId();
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putInt(App.PREF_KEY_LAST_MSG_ID, lastMessageId);
+                    editor.apply();
+                }
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                messageRowAdapter.notifyDataSetChanged();
+
             }
 
             @Override
