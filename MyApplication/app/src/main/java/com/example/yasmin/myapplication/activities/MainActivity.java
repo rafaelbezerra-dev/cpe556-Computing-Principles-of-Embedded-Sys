@@ -1,7 +1,12 @@
 package com.example.yasmin.myapplication.activities;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +25,7 @@ import com.example.yasmin.myapplication.adapters.MessageRowAdapter;
 import com.example.yasmin.myapplication.entities.Client;
 import com.example.yasmin.myapplication.entities.Message;
 import com.example.yasmin.myapplication.R;
+import com.example.yasmin.myapplication.receivers.BCastReceiver;
 import com.example.yasmin.myapplication.services.HttpServiceWrapper;
 import com.example.yasmin.myapplication.utils.App;
 import com.loopj.android.http.*;
@@ -29,6 +35,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -36,18 +43,24 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getCanonicalName();
 
     private static final int PREFERENCES_REQUEST = 1;
+    private static final int BROADCAST_REQUEST = 2;
 
-    private ArrayList<Client> clientArray;
-    private ArrayList<Message> messageArray;
+    private static final long INTERVAL_FIVE_SECONDS = 5 * 1000;
+    private static final long INTERVAL_TEN_SECONDS = 2 * INTERVAL_FIVE_SECONDS;
+
+    private static ArrayList<Client> clientArray;
+    private static ArrayList<Message> messageArray;
     private int userId;
     private String userName;
     private int lastMessageId;
 
-    private MessageRowAdapter messageRowAdapter;
+    private static MessageRowAdapter messageRowAdapter;
     private ListView messageListView;
     private EditText newMessageEditText;
     private ImageButton sendButton;
     private SharedPreferences sharedPreferences;
+    private AlarmManager alarmMgr;
+    private PendingIntent alarmIntent;
 
 
     @Override
@@ -60,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
 
         clientArray = new ArrayList<>();
         messageArray = new ArrayList<>();
+        alarmMgr = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 
         messageRowAdapter = new MessageRowAdapter(this, messageArray);
         messageListView.setAdapter(messageRowAdapter);
@@ -96,6 +110,48 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    @Override
+    protected void onStart() {
+        if (alarmIntent == null) {
+            Log.d("ALARM", "starting alarm manager");
+            Intent intent = new Intent(this, SyncAlarmReceiver.class);
+//            Intent intent = new Intent(this, BCastReceiver.class);
+            alarmIntent = PendingIntent.getBroadcast(this, this.BROADCAST_REQUEST, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+//                    INTERVAL_FIVE_SECONDS,
+//                    INTERVAL_FIVE_SECONDS, alarmIntent);
+//            long thirtySecondsFromNow = System.currentTimeMillis() + INTERVAL_FIVE_SECONDS;
+//            alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, thirtySecondsFromNow,  INTERVAL_FIVE_SECONDS, alarmIntent);
+            alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP,
+                    System.currentTimeMillis() + INTERVAL_FIVE_SECONDS,
+                    INTERVAL_FIVE_SECONDS,
+                    alarmIntent);
+
+//            alarmMgr.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+//                    SystemClock.elapsedRealtime()+INTERVAL_FIVE_SECONDS,
+//                    INTERVAL_FIVE_SECONDS,
+//                    alarmIntent);
+//            Calendar calendar = Calendar.getInstance();
+//            calendar.setTimeInMillis(System.currentTimeMillis());
+//            calendar.set(Calendar.HOUR_OF_DAY, 14);
+//            long triggerAtMillis = calendar.getTimeInMillis();
+//
+//            long intervalMillis = 10 * 1000;
+//            alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, triggerAtMillis, intervalMillis, alarmIntent);
+        }
+
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        if (alarmIntent != null) {
+            alarmMgr.cancel(alarmIntent);
+            alarmIntent = null;
+        }
+        super.onStop();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -262,6 +318,79 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+
+    static public class SyncAlarmReceiver extends BroadcastReceiver {
+        private final String TAG = SyncAlarmReceiver.class.getCanonicalName();
+
+        public SyncAlarmReceiver() {
+        }
+
+        private void getMessageList(final Context context, final boolean allMessages) {
+            final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+            final ArrayList<Message> messageArray = MainActivity.messageArray;
+            final MessageRowAdapter messageRowAdapter = MainActivity.messageRowAdapter;
+            int lastMessageId = 0;
+            if (!allMessages)
+                lastMessageId = sharedPreferences.getInt(App.PREF_KEY_LAST_MSG_ID, 0);
+            HttpServiceWrapper.getMessageList(context, lastMessageId, new JsonHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                    JSONObject object = null;
+                    int start = 1;
+                    if (allMessages) {
+                        messageArray.clear();
+                        start = 0;
+                    }
+                    for (int i = start; i < response.length(); i++) {
+                        try {
+                            object = (JSONObject) response.get(i);
+                            messageArray.add(new Message(object));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    messageRowAdapter.notifyDataSetChanged();
+                    if (messageArray.size() > 0) {
+                        int lastMessageId = messageArray.get(messageArray.size() - 1).getMessageId();
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putInt(App.PREF_KEY_LAST_MSG_ID, lastMessageId);
+                        editor.apply();
+                    }
+                    Log.d(TAG, "I got " + messageArray.size() + " message.");
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, String res, Throwable t) {
+                    Toast.makeText(context, "Sorry, I couldn't load the message list.", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Alarm executed at: " + new java.util.Date());
+            getMessageList(context, false);
+//            if (isOnline(context)) {
+//                ServiceHelper serviceHelper = new ServiceHelper();
+//                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+//                long userId = prefs.getLong(App.PREF_KEY_USERID, App.PREF_DEFAULT_USER_ID);
+//                long lastMessageSeqNum = prefs.getLong(App.PREF_KEY_LAST_SEQNUM, App.PREF_DEFAULT_LAST_SEQNUM);
+//                String userName = prefs.getString(App.PREF_KEY_USERNAME, App.PREF_DEFAULT_USER_NAME);
+//                double userLatitude = (double) prefs.getFloat(App.PREF_KEY_LATITUDE, 0);
+//                double userLongitude = (double) prefs.getFloat(App.PREF_KEY_LONGITUDE, 0);
+//
+//                String uuidString = prefs.getString(App.PREF_KEY_REGISTRATION_ID, "");
+//                if (!uuidString.isEmpty()) {
+//                    UUID registrationID = UUID.fromString(uuidString);
+//                    Peer peer = new Peer(userId, userName, userLatitude, userLongitude);
+//                    serviceHelper.syncAsync(context, registrationID, peer, lastMessageSeqNum, new ArrayList<Message>());
+//                }
+//            }
+        }
+
+    }
+
 }
 
 
