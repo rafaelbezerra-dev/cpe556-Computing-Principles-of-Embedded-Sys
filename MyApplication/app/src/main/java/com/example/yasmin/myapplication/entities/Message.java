@@ -1,4 +1,4 @@
-package com.example.yasmin.myapplication;
+package com.example.yasmin.myapplication.entities;
 
 import org.json.JSONException;
 import org.json.JSONObject;

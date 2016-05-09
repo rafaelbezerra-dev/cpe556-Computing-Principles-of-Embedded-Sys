@@ -1,10 +1,13 @@
-package com.example.yasmin.myapplication;
+package com.example.yasmin.myapplication.activities;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
 //import org.json.*;
+import com.example.yasmin.myapplication.entities.Client;
+import com.example.yasmin.myapplication.entities.Message;
+import com.example.yasmin.myapplication.R;
 import com.loopj.android.http.*;
 
 import org.json.JSONArray;
