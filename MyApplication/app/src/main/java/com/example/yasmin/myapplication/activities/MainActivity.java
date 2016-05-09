@@ -1,10 +1,17 @@
 package com.example.yasmin.myapplication.activities;
 
+import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ListView;
 
 //import org.json.*;
+import com.example.yasmin.myapplication.adapters.MessageRowAdapter;
 import com.example.yasmin.myapplication.entities.Client;
 import com.example.yasmin.myapplication.entities.Message;
 import com.example.yasmin.myapplication.R;
@@ -18,16 +25,22 @@ import java.util.ArrayList;
 
 import cz.msebera.android.httpclient.Header;
 
-public class MainActivity extends AppCompatActivity {
-    ArrayList<Client> clientArray = new ArrayList<Client>();
-    ArrayList<Message> messageArray = new ArrayList<Message>();
+public class MainActivity extends Activity {
+    private static final String TAG = MainActivity.class.getCanonicalName();
+
+
+    ArrayList<Client> clientArray;
+    ArrayList<Message> messageArray;
+
+    MessageRowAdapter messageRowAdapter;
+    private ListView messageListView;
+    private EditText newMessageEditText;
+    private ImageButton sendButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        getClientList();
-        getMessageList();
        /* client.post(url, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
@@ -43,9 +56,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });*/
 
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.layt__main);
 
 
+        messageListView = (ListView) findViewById(R.id.layt_main_lst_messages);
+        newMessageEditText = (EditText) findViewById(R.id.layt_main_message);
+        sendButton = (ImageButton) findViewById(R.id.layt_main_btn_send);
+
+
+        clientArray = new ArrayList<>();
+        messageArray = new ArrayList<>();
+
+
+//        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, messageList);
+        messageRowAdapter = new MessageRowAdapter(this, messageArray);
+        messageListView.setAdapter(messageRowAdapter);
+
+        getClientList();
+        getMessageList();
 
     }
 
@@ -69,11 +97,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
+                Log.d(TAG, "I got " + clientArray.size() + " clients.");
+
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, String res, Throwable t) {
-                Log.d("My Application Client GET ", "Goodbye World :(");
+                Log.d(TAG, "My Application Client GET: Goodbye World :(");
                 // called when response HTTP status is "4XX" (eg. 401, 403, 404)
             }
         });
@@ -90,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 JSONObject object = null;
-
+                messageArray.clear();
                 for(int i = 0; i < response.length(); i++){
                     try {
                         object = (JSONObject) response.get(i);
@@ -99,11 +129,12 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
+                Log.d(TAG, "I got " + messageArray.size() + " message.");
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, String res, Throwable t) {
-                Log.d("My Application Message GET ", "Goodbye World :(");
+                Log.d(TAG, "My Application Message GET: Goodbye World :(");
                 // called when response HTTP status is "4XX" (eg. 401, 403, 404)
             }
         });

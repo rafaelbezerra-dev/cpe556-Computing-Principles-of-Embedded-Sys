@@ -62,7 +62,7 @@ public class MessageRowAdapter extends ArrayAdapter<Message> {
                 content.setText(i.getMessageContent());
             }
             if (client != null){
-                client.setText(i.getClientId());
+                client.setText(String.valueOf(i.getClientId()));
             }
             if (status != null){
                 status.setText("sent");
