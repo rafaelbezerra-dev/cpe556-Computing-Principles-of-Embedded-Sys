@@ -30,11 +30,13 @@ class MessageListAPI(Resource):
 
 
     def post(self):
-        message_content = request.json['messageContent']
         client_id = int(request.json['clientId'])
-
         abort_if_client_doesnt_exist(client_id)
 
+        message_content = request.json['messageContent']
+        client_name = CLIENTS[client_id].client_name
+
+
         message_id = len(MESSAGES) + 1
-        MESSAGES[message_id] = Message(message_id, message_content, client_id)
+        MESSAGES[message_id] = Message(message_id, message_content, client_id, client_name)
         return MESSAGES[message_id].serialize(), 201

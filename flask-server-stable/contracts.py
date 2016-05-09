@@ -11,16 +11,18 @@ class Client:
 
 
 class Message:
-    def __init__(self, message_id=0, content=None, client_id=0):
+    def __init__(self, message_id=0, content=None, client_id=0, client_name=None):
         self.message_id = message_id
         self.content = content
         self.client_id = client_id
+        self.client_name = client_name
 
     def serialize(self):
         return {
             'messageId': self.message_id,
             'messageContent': self.content,
             'clientId': self.client_id,
+            'clientName': self.client_name,
         }
 
 
@@ -40,6 +42,6 @@ CLIENTS = {
 }
 
 MESSAGES = {
-    0: Message(0, 'Hi', 0),
-    1: Message(1, 'Hi there.', 0),
+    0: Message(0, 'Hi', 0, 'rafa'),
+    1: Message(1, 'Hi there.', 0, 'yasmin'),
 }

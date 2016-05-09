@@ -23,7 +23,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="sender"
+                android:text="client"
                 android:paddingLeft="10dp"
                 android:id="@+id/adp__message_row_client"
                 android:paddingBottom="5dp"

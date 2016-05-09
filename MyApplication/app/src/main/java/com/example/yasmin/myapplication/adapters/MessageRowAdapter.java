@@ -45,9 +45,9 @@ public class MessageRowAdapter extends ArrayAdapter<Message> {
 		 *
 		 * Therefore, i refers to the current Item object.
 		 */
-        Message i = list.get(position);
+        Message message = list.get(position);
 
-        if (i != null) {
+        if (message != null) {
 
             // This is how you obtain a reference to the TextViews.
             // These TextViews are created in the XML files we defined.
@@ -59,13 +59,14 @@ public class MessageRowAdapter extends ArrayAdapter<Message> {
             // check to see if each individual textview is null.
             // if not, assign some text!
             if (content != null){
-                content.setText(i.getMessageContent());
+                content.setText(message.getMessageContent());
             }
             if (client != null){
-                client.setText(String.valueOf(i.getClientId()));
+                client.setText(message.getClientName());
             }
             if (status != null){
-                status.setText("sent");
+                String statusMsg = message.isSent() ? "sent" : "pending";
+                status.setText(statusMsg);
             }
         }
 

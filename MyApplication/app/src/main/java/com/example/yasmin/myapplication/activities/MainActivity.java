@@ -1,6 +1,8 @@
 package com.example.yasmin.myapplication.activities;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,14 +30,19 @@ import cz.msebera.android.httpclient.Header;
 public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getCanonicalName();
 
+    public static final String PREF_KEY_USERNAME = "username";
+    public static final String PREF_KEY_LAST_SEQNUM = "last_seq_num";
 
-    ArrayList<Client> clientArray;
-    ArrayList<Message> messageArray;
+    private ArrayList<Client> clientArray;
+    private ArrayList<Message> messageArray;
+    private String userName;
+    private int lastMessageId;
 
-    MessageRowAdapter messageRowAdapter;
+    private MessageRowAdapter messageRowAdapter;
     private ListView messageListView;
     private EditText newMessageEditText;
     private ImageButton sendButton;
+    private SharedPreferences sharedPreferences;
 
 
     @Override
@@ -57,20 +64,19 @@ public class MainActivity extends Activity {
         });*/
 
         setContentView(R.layout.layt__main);
-
-
         messageListView = (ListView) findViewById(R.id.layt_main_lst_messages);
         newMessageEditText = (EditText) findViewById(R.id.layt_main_message);
         sendButton = (ImageButton) findViewById(R.id.layt_main_btn_send);
 
-
         clientArray = new ArrayList<>();
         messageArray = new ArrayList<>();
 
-
-//        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, messageList);
         messageRowAdapter = new MessageRowAdapter(this, messageArray);
         messageListView.setAdapter(messageRowAdapter);
+
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        lastMessageId = sharedPreferences.getInt(PREF_KEY_LAST_SEQNUM, 0);
+        userName = sharedPreferences.getString(PREF_KEY_USERNAME, "anonymous");
 
         getClientList();
         getMessageList();
