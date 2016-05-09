@@ -1,5 +1,8 @@
 package com.example.yasmin.myapplication;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * Created by Yasmin on 5/8/2016.
  */
@@ -12,6 +15,11 @@ public class Client {
         clientName = name;
     }
 
+    public Client(JSONObject object) throws JSONException {
+        clientId = object.getInt("clientId");
+        clientName = object.getString("clientName");
+    }
+
     public int getClientId() {
         return clientId;
     }
@@ -19,4 +27,5 @@ public class Client {
     public String getClientName(){
         return clientName;
     }
+
 }
