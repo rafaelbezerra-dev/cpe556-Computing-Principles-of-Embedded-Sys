@@ -102,7 +102,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String msg = newMessageEditText.getText().toString();
                 userId = sharedPreferences.getInt(App.PREF_KEY_USERID, 0);
-                sendMessage(new Message(msg, userId));
+                userName = sharedPreferences.getString(App.PREF_KEY_USERNAME, "anonymous");
+                sendMessage(new Message(msg, userId, userName, false));
                 newMessageEditText.setText("");
 
             }
@@ -277,8 +278,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendMessage(final Message message) {
-        message.setClientName(userName);
-        message.setSent(false);
+//        message.setClientName(userName);
+//        message.setSent(false);
         messageArray.add(message);
         messageRowAdapter.notifyDataSetChanged();
 

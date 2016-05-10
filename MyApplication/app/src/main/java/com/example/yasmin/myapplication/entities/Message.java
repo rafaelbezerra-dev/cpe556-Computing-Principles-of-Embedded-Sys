@@ -18,6 +18,12 @@ public class Message {
         messageContent = text;
     }
 
+    public Message(String messageContent, int clientId, String clientName, boolean isSent) {
+        this.clientId = clientId;
+        this.clientName = clientName;
+        this.isSent = isSent;
+        this.messageContent = messageContent;
+    }
 
     public Message(JSONObject object) throws JSONException {
         messageId = object.getInt("messageId");
