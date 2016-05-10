@@ -1,3 +1,5 @@
+from threading import *
+
 class Client:
     def __init__(self, client_id=0, client_name=None):
         self.client_id = client_id
@@ -25,6 +27,7 @@ class Message:
             'clientName': self.client_name,
         }
 
+lock = RLock()
 
 # CLIENTS = {
 #     0: {'id': 1, 'name': 'rafa'},
